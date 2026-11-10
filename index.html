@@ -33,33 +33,17 @@
         }
     </script>
     <style>
-        /* Transiciones suaves */
-        .card-transition {
-            transition: all 0.25s ease-in-out;
-        }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        .dark ::-webkit-scrollbar-track {
-            background: #1e293b;
-        }
-        .dark ::-webkit-scrollbar-thumb {
-            background: #475569;
-        }
+        .card-transition { transition: all 0.25s ease-in-out; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-track { background: #1e293b; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
     </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen font-sans antialiased transition-colors duration-200">
 
-    <!-- Header Navigation Bar -->
+    <!-- Header Bar -->
     <header class="sticky top-0 z-30 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700/60 px-4 lg:px-8 py-3">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-3">
@@ -68,25 +52,22 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-lg leading-tight text-slate-900 dark:text-white">ClimaControl <span class="text-teal-500 text-xs px-2 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950 border border-teal-200 dark:border-teal-800 font-semibold">ESP32 IoT</span></h1>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Panel Central de Infrarrojos</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Control IR Lennox / Prime</p>
                 </div>
             </div>
 
             <!-- Actions Bar -->
             <div class="flex items-center gap-2 sm:gap-3">
-                <!-- Status Badge -->
                 <div id="connectionStatusBadge" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800/50">
                     <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
                     <span>Desconectado</span>
                 </div>
 
-                <!-- Config Modal Trigger -->
                 <button id="btnOpenConfig" class="p-2 sm:px-3 sm:py-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-medium flex items-center gap-2 transition">
                     <i class="fa-solid fa-gear"></i>
                     <span class="hidden sm:inline">Firebase Config</span>
                 </button>
 
-                <!-- Add Device Trigger -->
                 <button id="btnOpenAddModal" class="px-3 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium flex items-center gap-2 shadow-sm transition">
                     <i class="fa-solid fa-plus"></i>
                     <span>Nuevo Clima</span>
@@ -97,86 +78,29 @@
 
     <main class="max-w-7xl mx-auto px-4 lg:px-8 py-6 space-y-6">
 
-        <!-- Top Alert / Demo Indicator -->
+        <!-- Banner Info -->
         <div id="demoNotice" class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm text-blue-800 dark:text-blue-300">
             <div class="flex items-center gap-3">
                 <i class="fa-solid fa-circle-info text-blue-500 text-lg shrink-0"></i>
-                <p><strong>Modo Configuración:</strong> Ingresa la URL de tu Firebase Realtime Database para conectar tus ESP32 o usa el <strong>Simulador</strong> para probar la interfaz visualmente.</p>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
-                <button id="btnSimulateActivity" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition">
-                    <i class="fa-solid fa-bolt mr-1"></i> Simular ESP32 Online
-                </button>
+                <p><strong>Configuración:</strong> Selecciona la marca (Lennox/Prime), ajusta temperatura (16-30°C modo Frío) y transmite o aprende señales IR en tiempo real.</p>
             </div>
         </div>
 
-        <!-- System Stats Summary -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700/60 shadow-sm flex items-center gap-4">
-                <div class="p-3 bg-teal-50 dark:bg-teal-950 text-teal-600 dark:text-teal-400 rounded-lg">
-                    <i class="fa-solid fa-temperature-arrow-up text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Equipos</p>
-                    <p id="statTotal" class="text-xl font-bold text-slate-800 dark:text-white">0</p>
-                </div>
-            </div>
-
-            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700/60 shadow-sm flex items-center gap-4">
-                <div class="p-3 bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                    <i class="fa-solid fa-wifi text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">ESP32 Online</p>
-                    <p id="statOnline" class="text-xl font-bold text-emerald-600 dark:text-emerald-400">0</p>
-                </div>
-            </div>
-
-            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700/60 shadow-sm flex items-center gap-4">
-                <div class="p-3 bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400 rounded-lg">
-                    <i class="fa-solid fa-power-off text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Aires Encendidos</p>
-                    <p id="statActive" class="text-xl font-bold text-slate-800 dark:text-white">0</p>
-                </div>
-            </div>
-
-            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700/60 shadow-sm flex items-center gap-4">
-                <div class="p-3 bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-lg">
-                    <i class="fa-solid fa-clock-rotate-left text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Última Señal</p>
-                    <p id="statLastSync" class="text-xs font-semibold text-slate-700 dark:text-slate-300">--:--</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Devices Section Header -->
-        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
-            <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                <i class="fa-solid fa-microchip text-teal-500"></i> Dispositivos y Controles
-            </h2>
-            <span class="text-xs text-slate-500">Actualización en tiempo real</span>
-        </div>
-
-        <!-- Grid of Air Conditioner Cards -->
+        <!-- Devices Grid -->
         <div id="devicesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Empty State / Loading placeholder -->
             <div id="emptyState" class="col-span-full py-12 text-center bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 p-8">
                 <i class="fa-solid fa-fan text-4xl text-slate-300 dark:text-slate-600 mb-3 animate-spin" style="animation-duration: 8s;"></i>
                 <h3 class="text-slate-700 dark:text-slate-300 font-semibold mb-1">Cargando dispositivos...</h3>
-                <p class="text-xs text-slate-400 max-w-sm mx-auto mb-4">Si no has configurado Firebase, haz clic abajo para cargar un grupo de prueba o configura tus credenciales.</p>
+                <p class="text-xs text-slate-400 max-w-sm mx-auto mb-4">Ingresa tu URL de Firebase para sincronizar o carga datos de prueba.</p>
                 <button id="btnLoadDemoData" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-lg transition">
-                    Cargar Dispositivos de Ejemplo
+                    Cargar Dispositivo de Ejemplo
                 </button>
             </div>
         </div>
 
     </main>
 
-    <!-- Modal: Configuración de Firebase -->
+    <!-- Modal Firebase -->
     <div id="modalConfig" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 relative">
             <button class="btnCloseModal absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
@@ -186,37 +110,23 @@
                 <div class="p-2 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-lg">
                     <i class="fa-solid fa-database text-lg"></i>
                 </div>
-                <h3 class="font-bold text-slate-800 dark:text-white">Credenciales de Firebase</h3>
+                <h3 class="font-bold text-slate-800 dark:text-white">Conexión a Firebase</h3>
             </div>
-            <p class="text-xs text-slate-500 mb-4">Ingresa la información de tu consola de Firebase Realtime Database para sincronizar.</p>
-
             <form id="formFirebaseConfig" class="space-y-3">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Database URL (*)</label>
-                    <input type="url" id="cfgDbUrl" required placeholder="https://tu-proyecto-default-rtdb.firebaseio.com" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    <input type="url" id="cfgDbUrl" required placeholder="https://almacenamiento-ir-default-rtdb.firebaseio.com" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">API Key (Opcional si usas reglas abiertas)</label>
-                    <input type="text" id="cfgApiKey" placeholder="AIzaSy..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Project ID</label>
-                    <input type="text" id="cfgProjectId" placeholder="tu-proyecto-id" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                </div>
-                
                 <div class="pt-3 flex gap-2">
                     <button type="submit" class="flex-1 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
                         Guardar Conexión
-                    </button>
-                    <button type="button" id="btnDisconnectFirebase" class="px-3 py-2 bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 text-xs font-semibold rounded-lg hover:bg-rose-100 transition">
-                        Usar Local
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal: Agregar Nuevo Dispositivo -->
+    <!-- Modal Agregar ESP32 -->
     <div id="modalAddDevice" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 relative">
             <button class="btnCloseModal absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
@@ -226,100 +136,68 @@
                 <div class="p-2 bg-teal-100 dark:bg-teal-950 text-teal-600 dark:text-teal-400 rounded-lg">
                     <i class="fa-solid fa-microchip text-lg"></i>
                 </div>
-                <h3 class="font-bold text-slate-800 dark:text-white">Registrar Nuevo ESP32</h3>
+                <h3 class="font-bold text-slate-800 dark:text-white">Registrar ESP32</h3>
             </div>
-
             <form id="formAddDevice" class="space-y-3">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">ID Único del ESP32</label>
-                    <input type="text" id="addDevId" required placeholder="ej: esp32_oficina" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                    <p class="text-[10px] text-slate-400 mt-1">Este debe coincidir exactamente con el `deviceId` programado en Arduino.</p>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">ID del ESP32</label>
+                    <input type="text" id="addDevId" required placeholder="ej: esp32_salon" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Nombre Descriptivo</label>
-                    <input type="text" id="addDevName" required placeholder="ej: Aire Oficina Principal" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    <input type="text" id="addDevName" required placeholder="ej: Aire Sala Principal" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Marca / Protocolo IR Recomendado</label>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Marca por defecto</label>
                     <select id="addDevBrand" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                        <option value="LG">LG (Protocolo NEC/LG)</option>
-                        <option value="Samsung">Samsung</option>
-                        <option value="Carrier">Carrier / Midea</option>
-                        <option value="Mirage">Mirage / York</option>
-                        <option value="Generic">Genérico IR</option>
+                        <option value="Lennox">Lennox</option>
+                        <option value="Prime">Prime</option>
                     </select>
                 </div>
-
-                <div class="pt-3 flex gap-2">
+                <div class="pt-3">
                     <button type="submit" class="w-full py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
-                        Crear Dispositivo
+                        Guardar ESP32
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Notification Toast Container -->
+    <!-- Toast Notifications -->
     <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- Application Logic Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getDatabase, ref, onValue, set, update, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
-        // Global State
         let db = null;
         let isFirebaseConnected = false;
         let devicesData = {};
-        
-        // Initial Demo Devices
+
         const DEMO_DEVICES = {
             "esp32_salon": {
                 name: "Aire Sala Principal",
-                brand: "LG",
+                brand: "Lennox",
                 power: true,
                 target_temp: 22,
-                mode: "cool",
                 fan_speed: "auto",
-                last_seen: Math.floor(Date.now() / 1000) - 5, // Online
-                ir_code: ""
-            },
-            "esp32_recamara": {
-                name: "Aire Recámara Master",
-                brand: "Samsung",
-                power: false,
-                target_temp: 24,
-                mode: "cool",
-                fan_speed: "medium",
-                last_seen: Math.floor(Date.now() / 1000) - 120, // Offline
-                ir_code: ""
+                swing: "off",
+                last_seen: Math.floor(Date.now() / 1000) - 5
             }
         };
 
-        // DOM Elements
         const devicesGrid = document.getElementById('devicesGrid');
         const emptyState = document.getElementById('emptyState');
         const connectionBadge = document.getElementById('connectionStatusBadge');
         const modalConfig = document.getElementById('modalConfig');
         const modalAddDevice = document.getElementById('modalAddDevice');
 
-        // Initial Load directly when module loads
         loadSavedConfig();
         setupEventListeners();
-        startOfflineChecker();
 
-        // Setup Event Listeners
         function setupEventListeners() {
-            // Modals toggle
-            const btnOpenConfig = document.getElementById('btnOpenConfig');
-            if (btnOpenConfig) {
-                btnOpenConfig.addEventListener('click', () => modalConfig?.classList.remove('hidden'));
-            }
-
-            const btnOpenAddModal = document.getElementById('btnOpenAddModal');
-            if (btnOpenAddModal) {
-                btnOpenAddModal.addEventListener('click', () => modalAddDevice?.classList.remove('hidden'));
-            }
+            document.getElementById('btnOpenConfig')?.addEventListener('click', () => modalConfig?.classList.remove('hidden'));
+            document.getElementById('btnOpenAddModal')?.addEventListener('click', () => modalAddDevice?.classList.remove('hidden'));
             
             document.querySelectorAll('.btnCloseModal').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -328,83 +206,28 @@
                 });
             });
 
-            // Forms
-            const formConfig = document.getElementById('formFirebaseConfig');
-            if (formConfig) formConfig.addEventListener('submit', handleConfigSave);
-
-            const formAdd = document.getElementById('formAddDevice');
-            if (formAdd) formAdd.addEventListener('submit', handleAddDevice);
+            document.getElementById('formFirebaseConfig')?.addEventListener('submit', handleConfigSave);
+            document.getElementById('formAddDevice')?.addEventListener('submit', handleAddDevice);
             
-            // Demo actions
-            const btnLoadDemo = document.getElementById('btnLoadDemoData');
-            if (btnLoadDemo) {
-                btnLoadDemo.addEventListener('click', () => {
-                    devicesData = { ...DEMO_DEVICES };
-                    renderDevices();
-                    showToast('Se cargaron dispositivos de demostración', 'info');
-                });
-            }
-
-            const btnSimulate = document.getElementById('btnSimulateActivity');
-            if (btnSimulate) {
-                btnSimulate.addEventListener('click', () => {
-                    // Refresh all last_seen to make them Online
-                    const now = Math.floor(Date.now() / 1000);
-                    Object.keys(devicesData).forEach(id => {
-                        devicesData[id].last_seen = now;
-                        if(isFirebaseConnected) {
-                            update(ref(db, `devices/${id}`), { last_seen: now });
-                        }
-                    });
-                    renderDevices();
-                    showToast('Simulación: Latidos de ESP32 enviados', 'success');
-                });
-            }
-
-            const btnDisconnect = document.getElementById('btnDisconnectFirebase');
-            if (btnDisconnect) {
-                btnDisconnect.addEventListener('click', () => {
-                    localStorage.removeItem('fb_db_url');
-                    location.reload();
-                });
-            }
-        }
-
-        // Firebase Initialization
-        function loadSavedConfig() {
-            const savedUrl = localStorage.getItem('fb_db_url');
-            const savedApiKey = localStorage.getItem('fb_api_key') || 'dummy-key';
-            const savedProjectId = localStorage.getItem('fb_project_id') || 'default-proj';
-
-            if (savedUrl) {
-                document.getElementById('cfgDbUrl').value = savedUrl;
-                document.getElementById('cfgApiKey').value = savedApiKey;
-                document.getElementById('cfgProjectId').value = savedProjectId;
-                
-                initFirebase({
-                    apiKey: savedApiKey,
-                    databaseURL: savedUrl,
-                    projectId: savedProjectId
-                });
-            } else {
-                // Fallback to demo mode
+            document.getElementById('btnLoadDemoData')?.addEventListener('click', () => {
                 devicesData = { ...DEMO_DEVICES };
                 renderDevices();
-            }
+                showToast('Se cargaron datos de demostración', 'info');
+            });
+        }
+
+        function loadSavedConfig() {
+            const savedUrl = localStorage.getItem('fb_db_url') || 'https://almacenamiento-ir-default-rtdb.firebaseio.com';
+            document.getElementById('cfgDbUrl').value = savedUrl;
+            initFirebase({ databaseURL: savedUrl });
         }
 
         function handleConfigSave(e) {
             e.preventDefault();
             const url = document.getElementById('cfgDbUrl').value.trim();
-            const apiKey = document.getElementById('cfgApiKey').value.trim();
-            const projectId = document.getElementById('cfgProjectId').value.trim();
-
             localStorage.setItem('fb_db_url', url);
-            localStorage.setItem('fb_api_key', apiKey);
-            localStorage.setItem('fb_project_id', projectId);
-
             modalConfig.classList.add('hidden');
-            initFirebase({ apiKey, databaseURL: url, projectId });
+            initFirebase({ databaseURL: url });
         }
 
         function initFirebase(config) {
@@ -412,21 +235,15 @@
                 const app = initializeApp(config);
                 db = getDatabase(app);
                 
-                const devicesRef = ref(db, 'devices');
-                onValue(devicesRef, (snapshot) => {
-                    const data = snapshot.val();
-                    devicesData = data || {};
+                onValue(ref(db, 'devices'), (snapshot) => {
+                    devicesData = snapshot.val() || {};
                     isFirebaseConnected = true;
                     updateConnectionStatus(true);
                     renderDevices();
                 }, (error) => {
-                    console.error("Error Firebase:", error);
-                    showToast('Error de conexión con Firebase: ' + error.message, 'error');
                     updateConnectionStatus(false);
                 });
             } catch (err) {
-                console.error("Config inválida:", err);
-                showToast('Error en la configuración de Firebase', 'error');
                 updateConnectionStatus(false);
             }
         }
@@ -442,23 +259,14 @@
             }
         }
 
-        // Render Devices UI
         function renderDevices() {
             const ids = Object.keys(devicesData);
-            
-            // Stats Update
-            document.getElementById('statTotal').innerText = ids.length;
-            
             const nowSeconds = Math.floor(Date.now() / 1000);
-            let onlineCount = 0;
-            let activeCount = 0;
 
             if (ids.length === 0) {
                 devicesGrid.innerHTML = '';
                 devicesGrid.appendChild(emptyState);
                 emptyState.classList.remove('hidden');
-                document.getElementById('statOnline').innerText = '0';
-                document.getElementById('statActive').innerText = '0';
                 return;
             }
 
@@ -467,34 +275,23 @@
 
             ids.forEach(id => {
                 const dev = devicesData[id];
-                // Device is online if last_seen was less than 35 seconds ago
                 const isOnline = dev.last_seen && (nowSeconds - dev.last_seen < 35);
-                if (isOnline) onlineCount++;
-                if (dev.power) activeCount++;
-
                 const card = createDeviceCard(id, dev, isOnline);
                 devicesGrid.appendChild(card);
             });
-
-            document.getElementById('statOnline').innerText = onlineCount;
-            document.getElementById('statActive').innerText = activeCount;
-            document.getElementById('statLastSync').innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
-        // Create Individual Device Card DOM
         function createDeviceCard(id, dev, isOnline) {
             const card = document.createElement('div');
             card.className = `card-transition bg-white dark:bg-slate-800 rounded-2xl border ${dev.power ? 'border-teal-500/50 shadow-lg shadow-teal-500/5' : 'border-slate-200 dark:border-slate-700/60 shadow-sm'} p-5 relative flex flex-col justify-between`;
 
-            // Temperature color map
             const temp = dev.target_temp || 22;
-            let tempColorClass = "text-teal-600 dark:text-teal-400";
-            if (temp <= 18) tempColorClass = "text-cyan-600 dark:text-cyan-400";
-            if (temp >= 26) tempColorClass = "text-amber-600 dark:text-amber-400";
+            const currentBrand = dev.brand || 'Lennox';
+            const cmdId = `temp_${temp}_fan_${dev.fan_speed || 'auto'}_swing_${dev.swing || 'off'}`;
 
             card.innerHTML = `
                 <div>
-                    <!-- Top Info Header -->
+                    <!-- Header -->
                     <div class="flex items-start justify-between gap-2 mb-4">
                         <div>
                             <div class="flex items-center gap-2">
@@ -503,159 +300,124 @@
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
                             </div>
-                            <span class="text-[11px] text-slate-400 font-mono">ID: ${id} • ${dev.brand || 'Genérico'}</span>
+                            <span class="text-[11px] text-slate-400 font-mono">ID: ${id}</span>
                         </div>
                         
-                        <!-- Online Status Indicator -->
                         <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${isOnline ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'}">
                             <span class="w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}"></span>
                             <span>${isOnline ? 'Online' : 'Offline'}</span>
                         </div>
                     </div>
 
-                    <!-- Temperature Display & Power Toggle -->
-                    <div class="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-4 mb-5 flex items-center justify-between border border-slate-100 dark:border-slate-700/40">
+                    <!-- Selector de Marca -->
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Marca del Clima</label>
+                        <select onchange="setBrand('${id}', this.value)" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-bold">
+                            <option value="Lennox" ${currentBrand === 'Lennox' ? 'selected' : ''}>Lennox</option>
+                            <option value="Prime" ${currentBrand === 'Prime' ? 'selected' : ''}>Prime</option>
+                        </select>
+                    </div>
+
+                    <!-- Display Temperatura -->
+                    <div class="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-4 mb-4 flex items-center justify-between border border-slate-100 dark:border-slate-700/40">
                         <div>
-                            <span class="text-xs text-slate-400 uppercase font-semibold tracking-wider">Temperatura</span>
+                            <span class="text-xs text-slate-400 uppercase font-semibold tracking-wider">Modo Frío</span>
                             <div class="flex items-baseline gap-1">
-                                <span class="text-3xl font-extrabold ${dev.power ? tempColorClass : 'text-slate-300 dark:text-slate-600'} transition-colors">${temp}</span>
-                                <span class="text-sm font-semibold ${dev.power ? 'text-slate-600 dark:text-slate-300' : 'text-slate-300 dark:text-slate-600'}">°C</span>
+                                <span class="text-3xl font-extrabold text-teal-600 dark:text-teal-400 transition-colors">${temp}</span>
+                                <span class="text-sm font-semibold text-slate-600 dark:text-slate-300">°C</span>
                             </div>
                         </div>
 
-                        <!-- Power Button -->
                         <button onclick="togglePower('${id}', ${!dev.power})" class="w-12 h-12 rounded-xl flex items-center justify-center text-lg shadow-md transition-all ${dev.power ? 'bg-rose-500 text-white shadow-rose-500/30 hover:bg-rose-600 active:scale-95' : 'bg-slate-200 dark:bg-slate-700 text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-600'}">
                             <i class="fa-solid fa-power-off"></i>
                         </button>
                     </div>
 
-                    <!-- Controls Section (Disabled if device is powered off) -->
-                    <div class="space-y-4 ${!dev.power ? 'opacity-40 pointer-events-none' : ''} transition-opacity">
-                        
-                        <!-- Temperature Stepper -->
+                    <!-- Ajustes -->
+                    <div class="space-y-4 ${!dev.power ? 'opacity-40 pointer-events-none' : ''}">
+                        <!-- Temperatura 16 - 30 -->
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Ajustar Temperatura</label>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Temperatura (16°C a 30°C)</label>
                             <div class="flex items-center gap-2">
-                                <button onclick="changeTemp('${id}', ${temp - 1})" class="flex-1 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-sm transition">-</button>
+                                <button onclick="changeTemp('${id}', ${temp - 1})" class="flex-1 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm">-</button>
                                 <input type="range" min="16" max="30" value="${temp}" onchange="changeTemp('${id}', parseInt(this.value))" class="w-full accent-teal-600 cursor-pointer">
-                                <button onclick="changeTemp('${id}', ${temp + 1})" class="flex-1 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-sm transition">+</button>
+                                <button onclick="changeTemp('${id}', ${temp + 1})" class="flex-1 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm">+</button>
                             </div>
                         </div>
 
-                        <!-- Mode Selector Buttons -->
+                        <!-- Velocidad Ventilador (Auto, 1, 2, 3) -->
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Modo de Operación</label>
-                            <div class="grid grid-cols-4 gap-1.5 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl">
-                                ${['cool', 'heat', 'fan', 'dry'].map(m => `
-                                    <button onclick="setMode('${id}', '${m}')" class="py-1.5 rounded-lg text-xs font-medium capitalize flex flex-col items-center justify-center gap-1 transition ${dev.mode === m ? 'bg-white dark:bg-slate-800 text-teal-600 dark:text-teal-400 shadow-sm font-bold' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}">
-                                        <i class="fa-solid ${getModeIcon(m)}"></i>
-                                        <span class="text-[10px]">${m}</span>
-                                    </button>
-                                `).join('')}
-                            </div>
-                        </div>
-
-                        <!-- Fan Speed Selector -->
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Velocidad del Ventilador</label>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Ventilador (Fan)</label>
                             <div class="grid grid-cols-4 gap-1.5">
-                                ${['auto', 'low', 'medium', 'high'].map(s => `
-                                    <button onclick="setFanSpeed('${id}', '${s}')" class="py-1.5 rounded-lg text-[11px] font-medium capitalize transition border ${dev.fan_speed === s ? 'bg-teal-50 dark:bg-teal-950/60 border-teal-500 text-teal-700 dark:text-teal-300 font-bold' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'}">
-                                        ${s}
+                                ${['auto', '1', '2', '3'].map(s => `
+                                    <button onclick="setFanSpeed('${id}', '${s}')" class="py-1.5 rounded-lg text-xs font-semibold transition border ${dev.fan_speed === s ? 'bg-teal-50 dark:bg-teal-950 border-teal-500 text-teal-700 dark:text-teal-300 font-bold' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'}">
+                                        ${s === 'auto' ? 'Auto' : 'Nivel ' + s}
                                     </button>
                                 `).join('')}
                             </div>
                         </div>
 
+                        <!-- Swing -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Movimiento Aspas (Swing)</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="setSwing('${id}', 'on')" class="py-1.5 rounded-lg text-xs font-semibold border ${dev.swing === 'on' ? 'bg-teal-50 dark:bg-teal-950 border-teal-500 text-teal-700 dark:text-teal-300 font-bold' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'}">
+                                    <i class="fa-solid fa-arrows-up-down mr-1"></i> Swing ON
+                                </button>
+                                <button onclick="setSwing('${id}', 'off')" class="py-1.5 rounded-lg text-xs font-semibold border ${dev.swing === 'off' ? 'bg-teal-50 dark:bg-teal-950 border-teal-500 text-teal-700 dark:text-teal-300 font-bold' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'}">
+                                    Fijo (OFF)
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Custom Hex IR Command Terminal Footer -->
-                <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-700/60">
-                    <label class="block text-[11px] font-semibold text-slate-400 mb-1">Comando IR Hexadecimal Manual</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="ir_input_${id}" placeholder="0xB24DBF00" class="flex-1 px-2.5 py-1.5 text-xs font-mono rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                        <button onclick="sendHexIR('${id}')" class="px-3 py-1.5 bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg transition shadow-sm flex items-center gap-1">
-                            <i class="fa-solid fa-paper-plane text-[10px]"></i>
-                            <span>Enviar</span>
-                        </button>
-                    </div>
+                <!-- Footer Botones de Acción IR -->
+                <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-700/60 flex gap-2">
+                    <button onclick="sendIRCommand('${id}', '${cmdId}')" class="flex-1 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-lg shadow-sm transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>Enviar Señal IR</span>
+                    </button>
+
+                    <button onclick="learnIRCommand('${id}', '${cmdId}')" class="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-lg shadow-sm transition flex items-center justify-center gap-1.5" title="Guardar señal física de tu control">
+                        <i class="fa-solid fa-walkie-talkie"></i>
+                        <span>Aprender</span>
+                    </button>
                 </div>
             `;
 
             return card;
         }
 
-        // Mode Icons Helper
-        function getModeIcon(mode) {
-            switch(mode) {
-                case 'cool': return 'fa-snowflake';
-                case 'heat': return 'fa-sun';
-                case 'fan': return 'fa-fan';
-                case 'dry': return 'fa-droplet';
-                default: return 'fa-gear';
-            }
-        }
+        window.togglePower = function(id, state) { updateDeviceField(id, { power: state }); };
+        window.changeTemp = function(id, temp) { if (temp >= 16 && temp <= 30) updateDeviceField(id, { target_temp: temp }); };
+        window.setBrand = function(id, brand) { updateDeviceField(id, { brand }); };
+        window.setFanSpeed = function(id, fan_speed) { updateDeviceField(id, { fan_speed }); };
+        window.setSwing = function(id, swing) { updateDeviceField(id, { swing }); };
 
-        // Device Control Functions
-        window.togglePower = function(id, state) {
-            updateDeviceField(id, { power: state });
-            showToast(`Aire ${state ? 'encendido' : 'apagado'}`, state ? 'success' : 'info');
+        window.sendIRCommand = function(id, cmdId) {
+            updateDeviceField(id, { command_to_send: cmdId });
+            showToast(`Orden ${cmdId} enviada al ESP32`, 'success');
         };
 
-        window.changeTemp = function(id, temp) {
-            if (temp < 16) temp = 16;
-            if (temp > 30) temp = 30;
-            updateDeviceField(id, { target_temp: temp });
-        };
-
-        window.setMode = function(id, mode) {
-            updateDeviceField(id, { mode });
-            showToast(`Modo cambiado a ${mode.toUpperCase()}`, 'info');
-        };
-
-        window.setFanSpeed = function(id, fan_speed) {
-            updateDeviceField(id, { fan_speed });
-        };
-
-        window.sendHexIR = function(id) {
-            const input = document.getElementById(`ir_input_${id}`);
-            const code = input.value.trim();
-            if (!code) {
-                showToast('Ingresa un código Hexadecimal válido', 'error');
-                return;
-            }
-            updateDeviceField(id, { ir_code: code });
-            showToast(`Código IR ${code} enviado al ESP32`, 'success');
-            input.value = '';
+        window.learnIRCommand = function(id, cmdId) {
+            updateDeviceField(id, { learning_mode: true, learning_id: cmdId });
+            showToast(`ESP32 en modo escucha. Apunta con tu control físico y presiona el botón.`, 'info');
         };
 
         window.deleteDevice = function(id) {
-            if(confirm(`¿Estás seguro de eliminar el dispositivo ${id}?`)) {
-                if (isFirebaseConnected) {
-                    remove(ref(db, `devices/${id}`));
-                } else {
-                    delete devicesData[id];
-                    renderDevices();
-                }
-                showToast('Dispositivo eliminado', 'info');
+            if(confirm(`¿Eliminar ${id}?`)) {
+                if (isFirebaseConnected) remove(ref(db, `devices/${id}`));
+                else { delete devicesData[id]; renderDevices(); }
             }
         };
 
         function updateDeviceField(id, dataObj) {
-            // Local State Update
-            if (devicesData[id]) {
-                Object.assign(devicesData[id], dataObj);
-                renderDevices();
-            }
-
-            // Firebase Update if available
-            if (isFirebaseConnected) {
-                update(ref(db, `devices/${id}`), dataObj);
-            }
+            if (devicesData[id]) Object.assign(devicesData[id], dataObj);
+            renderDevices();
+            if (isFirebaseConnected) update(ref(db, `devices/${id}`), dataObj);
         }
 
-        // Add Device Handler
         function handleAddDevice(e) {
             e.preventDefault();
             const id = document.getElementById('addDevId').value.trim().replace(/\s+/g, '_').toLowerCase();
@@ -664,63 +426,25 @@
 
             if (!id || !name) return;
 
-            const newDev = {
-                name,
-                brand,
-                power: false,
-                target_temp: 24,
-                mode: "cool",
-                fan_speed: "auto",
-                last_seen: Math.floor(Date.now() / 1000),
-                ir_code: ""
-            };
+            const newDev = { name, brand, power: false, target_temp: 22, fan_speed: "auto", swing: "off", last_seen: Math.floor(Date.now() / 1000) };
 
-            if (isFirebaseConnected) {
-                set(ref(db, `devices/${id}`), newDev);
-            } else {
-                devicesData[id] = newDev;
-                renderDevices();
-            }
+            if (isFirebaseConnected) set(ref(db, `devices/${id}`), newDev);
+            else { devicesData[id] = newDev; renderDevices(); }
 
             modalAddDevice.classList.add('hidden');
             document.getElementById('formAddDevice').reset();
-            showToast('Nuevo ESP32 registrado correctamente', 'success');
+            showToast('ESP32 guardado correctamente', 'success');
         }
 
-        // Automatic Periodic Check for Offline Status
-        function startOfflineChecker() {
-            setInterval(() => {
-                // Re-render UI every 10 seconds to recalculate heartbeat/online state
-                if (Object.keys(devicesData).length > 0) {
-                    renderDevices();
-                }
-            }, 10000);
-        }
-
-        // Toast Notification System
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
-            
-            let bgClass = "bg-slate-800 text-white";
-            if (type === 'success') bgClass = "bg-emerald-600 text-white";
-            if (type === 'error') bgClass = "bg-rose-600 text-white";
-
+            let bgClass = type === 'success' ? "bg-emerald-600 text-white" : (type === 'error' ? "bg-rose-600 text-white" : "bg-slate-800 text-white");
             toast.className = `pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-lg ${bgClass} text-xs font-medium transition-all duration-300 transform translate-y-2 opacity-0`;
             toast.innerHTML = `<span>${message}</span>`;
-
             container.appendChild(toast);
-
-            // Animate in
-            setTimeout(() => {
-                toast.classList.remove('translate-y-2', 'opacity-0');
-            }, 10);
-
-            // Remove after 3s
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-y-2');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+            setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-2'); setTimeout(() => toast.remove(), 300); }, 3500);
         }
     </script>
 </body>
