@@ -15,28 +15,139 @@
     />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Tipografía (Plus Jakarta Sans para interfaz y JetBrains Mono para valores numéricos) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/src/index.css" />
+
+    <!-- Tailwind CSS vía CDN: permite ejecutar este archivo directamente en GitHub Pages sin compilación -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Estilos base y superficies glassmorphism -->
+    <style>
+      html {
+        color-scheme: dark;
+        background-color: #070b12;
+        color: #f1f5f9;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      body {
+        min-height: 100dvh;
+        background-color: #070b12;
+        overflow-x: hidden;
+      }
+
+      .glass-panel {
+        background: linear-gradient(
+          145deg,
+          rgba(255, 255, 255, 0.055) 0%,
+          rgba(255, 255, 255, 0.02) 100%
+        );
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        box-shadow:
+          0 24px 48px -16px rgba(0, 0, 0, 0.55),
+          inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+      }
+
+      .glass-control {
+        background: rgba(255, 255, 255, 0.035);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        transition:
+          background-color 160ms cubic-bezier(0.16, 1, 0.3, 1),
+          border-color 160ms cubic-bezier(0.16, 1, 0.3, 1),
+          transform 140ms cubic-bezier(0.16, 1, 0.3, 1),
+          color 160ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .glass-control:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.075);
+        border-color: rgba(255, 255, 255, 0.16);
+      }
+
+      .glass-control:active:not(:disabled) {
+        transform: scale(0.97);
+      }
+
+      .glass-control-active {
+        background: rgba(56, 189, 248, 0.14);
+        border-color: rgba(56, 189, 248, 0.48);
+        color: #f0f9ff;
+        box-shadow: inset 0 1px 0 0 rgba(186, 230, 253, 0.18);
+      }
+
+      .glass-control-active:hover:not(:disabled) {
+        background: rgba(56, 189, 248, 0.2);
+        border-color: rgba(56, 189, 248, 0.6);
+      }
+
+      .ambient-glow {
+        transition: opacity 400ms cubic-bezier(0.16, 1, 0.3, 1), transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .signal-toast {
+        transition: opacity 200ms cubic-bezier(0.16, 1, 0.3, 1), transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      @keyframes louver-wave {
+        0%, 100% {
+          transform: translateY(0px) rotate(0deg);
+        }
+        50% {
+          transform: translateY(2px) rotate(-6deg);
+        }
+      }
+
+      .animate-louver {
+        animation: louver-wave 2.2s ease-in-out infinite;
+        transform-origin: center left;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .animate-louver {
+          animation: none;
+        }
+        .glass-control,
+        .ambient-glow,
+        .signal-toast {
+          transition: none;
+        }
+      }
+    </style>
   </head>
-  <body class="min-h-dvh bg-[#070b12] text-slate-100 antialiased selection:bg-sky-400/30 selection:text-sky-100">
-    <!-- Subtle Atmospheric Backdrop -->
+
+  <body class="min-h-dvh bg-[#070b12] font-sans text-slate-100 antialiased selection:bg-sky-400/30 selection:text-sky-100">
+    <!-- Fondo ambiental sutil que reacciona al estado de encendido -->
     <div class="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
       <div
         id="ambient-primary"
         class="ambient-glow absolute -top-40 left-1/2 -translate-x-1/2 w-[42rem] h-[42rem] rounded-full blur-[120px] opacity-20 bg-sky-500/25"
       ></div>
-      <div
-        class="absolute -bottom-48 right-[-10%] w-[32rem] h-[32rem] rounded-full blur-[120px] bg-slate-700/20"
-      ></div>
+      <div class="absolute -bottom-48 right-[-10%] w-[32rem] h-[32rem] rounded-full blur-[120px] bg-slate-700/20"></div>
     </div>
 
     <div class="relative z-10 min-h-dvh flex flex-col">
-      <!-- Top Bar (3-zone clean header) -->
+      <!-- 1. Encabezado superior con estado de conexión y botón de actualización -->
       <header class="w-full border-b border-white/[0.06] bg-[#070b12]/70 backdrop-blur-xl sticky top-0 z-30">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <span class="text-lg font-semibold tracking-tight text-slate-50 whitespace-nowrap shrink-0">
@@ -45,11 +156,7 @@
 
           <div class="flex items-center gap-4 sm:gap-6 shrink-0">
             <div class="flex items-center gap-2 text-xs sm:text-sm text-slate-400 whitespace-nowrap">
-              <span
-                id="sync-dot"
-                class="w-2 h-2 rounded-full bg-slate-500 transition-colors"
-                aria-hidden="true"
-              ></span>
+              <span id="sync-dot" class="w-2 h-2 rounded-full bg-slate-500 transition-colors" aria-hidden="true"></span>
               <span id="sync-status-text">Conectando...</span>
             </div>
 
@@ -79,9 +186,9 @@
         </div>
       </header>
 
-      <!-- Main Workspace -->
+      <!-- Contenido principal -->
       <main class="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 flex flex-col justify-center">
-        <!-- Initial Loading Overlay Banner (non-blocking once loaded) -->
+        <!-- Alerta de error de red (oculta por defecto) -->
         <div
           id="error-banner"
           class="hidden mb-6 rounded-2xl border border-rose-500/30 bg-rose-500/10 backdrop-blur-md px-4 py-3 text-sm text-rose-200 flex items-center justify-between gap-4"
@@ -105,14 +212,13 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-          <!-- Left Column: Brand, Power & Central Temperature Dial -->
+          <!-- 2. Panel principal: Selector de marca, Encendido/Apagado y Temperatura (16–30 °C) -->
           <section
             aria-label="Control principal de temperatura y encendido"
             class="lg:col-span-7 glass-panel rounded-3xl p-5 sm:p-8 flex flex-col justify-between gap-8"
           >
-            <!-- Top Row: Brand Selector & Power Button -->
+            <!-- Fila superior: Marca y botón Power -->
             <div class="flex flex-wrap items-center justify-between gap-4">
-              <!-- Brand Segmented Selector -->
               <div
                 class="inline-flex items-center p-1 rounded-2xl bg-white/[0.04] border border-white/[0.08]"
                 role="group"
@@ -136,7 +242,6 @@
                 </button>
               </div>
 
-              <!-- Main Power Toggle -->
               <button
                 id="btn-power"
                 type="button"
@@ -160,10 +265,9 @@
               </button>
             </div>
 
-            <!-- Center Focal Anchor: Large Temperature Readout + +/- Buttons -->
+            <!-- Centro: Dial térmico con botones - y + -->
             <div class="flex flex-col items-center justify-center py-2 sm:py-4">
               <div class="relative flex items-center justify-center w-full max-w-md">
-                <!-- Minus Button -->
                 <button
                   id="btn-temp-down"
                   type="button"
@@ -175,10 +279,8 @@
                   </svg>
                 </button>
 
-                <!-- Central Dial & Temperature Readout -->
                 <div class="flex-1 flex flex-col items-center justify-center px-4 text-center">
                   <div class="relative flex items-center justify-center w-48 h-48 sm:w-56 sm:h-56">
-                    <!-- Subtle Thermal Arc Gauge -->
                     <svg class="absolute inset-0 w-full h-full -rotate-[225deg]" viewBox="0 0 200 200" aria-hidden="true">
                       <circle
                         cx="100"
@@ -215,13 +317,12 @@
                         <span class="text-xl sm:text-2xl font-medium text-slate-400 mt-1.5 ml-0.5">°C</span>
                       </div>
                       <p id="unit-subtitle" class="mt-3 text-xs sm:text-sm text-slate-400 whitespace-nowrap">
-                        Lennox · En espera
+                        Lennox · Unidad en espera
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <!-- Plus Button -->
                 <button
                   id="btn-temp-up"
                   type="button"
@@ -235,7 +336,7 @@
                 </button>
               </div>
 
-              <!-- Range Reference Bar (16°C - 30°C) -->
+              <!-- Barra visual del rango operativo (16 °C a 30 °C) -->
               <div class="w-full max-w-xs mt-4 flex items-center gap-3 text-xs font-mono tabular-nums text-slate-500">
                 <span>16°</span>
                 <div class="flex-1 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
@@ -249,7 +350,7 @@
               </div>
             </div>
 
-            <!-- Bottom Feedback Slot (Fixed Height to Prevent Layout Shift) -->
+            <!-- Pie del panel principal: rango y confirmación de señal enviada -->
             <div class="min-h-[44px] pt-4 border-t border-white/[0.06] flex items-center justify-between gap-4">
               <div class="text-xs text-slate-400 flex items-center gap-2">
                 <span>Rango operativo</span>
@@ -257,14 +358,12 @@
                 <span class="font-mono tabular-nums text-slate-300">16–30 °C</span>
               </div>
 
-              <!-- Signal Sent Feedback Toast -->
               <div
                 id="signal-feedback"
                 aria-live="polite"
                 class="signal-toast opacity-0 translate-y-1 pointer-events-none flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-emerald-400/30 bg-emerald-400/10 text-emerald-300 text-xs font-medium whitespace-nowrap"
               >
                 <svg
-                  id="signal-feedback-icon"
                   class="w-3.5 h-3.5 shrink-0"
                   viewBox="0 0 24 24"
                   fill="none"
@@ -281,16 +380,16 @@
             </div>
           </section>
 
-          <!-- Right Column: Fan Speed, Swing & Live Sync State -->
+          <!-- 3. Panel lateral: Ventilador, Oscilación (Swing) y Estado en Firebase -->
           <div class="lg:col-span-5 flex flex-col gap-6">
-            <!-- Fan Speed Control -->
+            <!-- Selector de velocidad de ventilador -->
             <section
               aria-label="Selector de velocidad de ventilador"
               class="glass-panel rounded-3xl p-5 sm:p-6 flex flex-col gap-4"
             >
               <div class="flex items-center justify-between gap-2">
                 <h2 class="text-sm font-semibold text-slate-100">Velocidad de ventilador</h2>
-                <span id="fan-summary" class="text-xs text-slate-400">Automático</span>
+                <span id="fan-summary" class="text-xs text-slate-400">Auto</span>
               </div>
 
               <div class="grid grid-cols-2 gap-3" role="group" aria-label="Velocidad de ventilador">
@@ -351,14 +450,14 @@
               </div>
             </section>
 
-            <!-- Swing / Louver Oscillation Toggle -->
+            <!-- Interruptor de oscilación (Swing On / Off) -->
             <section
               aria-label="Oscilación de rejillas"
               class="glass-panel rounded-3xl p-5 sm:p-6 flex flex-col gap-4"
             >
               <div class="flex items-center justify-between gap-2">
                 <h2 class="text-sm font-semibold text-slate-100">Oscilación de rejillas</h2>
-                <span id="swing-badge-text" class="text-xs text-slate-400">Rejillas fijas</span>
+                <span id="swing-badge-text" class="text-xs text-slate-400">Swing Off</span>
               </div>
 
               <button
@@ -387,11 +486,10 @@
                   </div>
                   <div class="text-left min-w-0">
                     <p class="text-sm font-medium text-slate-100 truncate">Modo Swing</p>
-                    <p id="swing-subtext" class="text-xs text-slate-400 truncate">Toca para activar oscilación</p>
+                    <p id="swing-subtext" class="text-xs text-slate-400 truncate">Rejillas fijas · Toca para activar</p>
                   </div>
                 </div>
 
-                <!-- Switch Visual Indicator -->
                 <div
                   id="swing-track"
                   class="w-12 h-7 rounded-full p-1 bg-white/10 border border-white/10 transition-colors shrink-0 flex items-center"
@@ -405,7 +503,7 @@
               </button>
             </section>
 
-            <!-- Live Synced Configuration Readout -->
+            <!-- Resumen de valores sincronizados en Firebase -->
             <section
               aria-label="Configuración sincronizada"
               class="glass-panel rounded-3xl p-5 sm:p-6 flex-1 flex flex-col justify-between gap-4"
@@ -439,38 +537,23 @@
         </div>
       </main>
 
-      <!-- Quiet Footer -->
+      <!-- Pie de página -->
       <footer class="w-full max-w-5xl mx-auto px-4 sm:px-6 py-5 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
         <div class="flex items-center gap-2">
           <span>ClimaControl IR</span>
           <span aria-hidden="true">·</span>
-          <span>Sincronización en tiempo real</span>
+          <span>Firebase Realtime Database</span>
         </div>
-        <div class="flex items-center gap-4">
-          <button
-            id="btn-copy-html"
-            type="button"
-            class="text-slate-400 hover:text-slate-200 underline underline-offset-4 transition-colors cursor-pointer whitespace-nowrap"
-          >
-            Copiar código HTML
-          </button>
-          <span aria-hidden="true">·</span>
-          <button
-            id="btn-download-html"
-            type="button"
-            class="text-slate-400 hover:text-slate-200 underline underline-offset-4 transition-colors cursor-pointer whitespace-nowrap"
-          >
-            Descargar archivo HTML único
-          </button>
-        </div>
+        <span>Lennox &amp; Prime</span>
       </footer>
     </div>
 
-    <!-- Pure Vanilla JavaScript Controller -->
+    <!-- 4. Lógica de control y sincronización con Firebase Realtime Database -->
     <script>
       (function () {
         'use strict';
 
+        // --- Configuración de Firebase y límites del dispositivo ---
         const FIREBASE_URL =
           'https://almacenamiento-ir-default-rtdb.firebaseio.com/estado_dispositivo.json';
         const TEMP_MIN = 16;
@@ -486,14 +569,14 @@
           fan_3: 'Fan 3',
         };
 
-        // Application State
+        // --- Estado local sincronizado ---
         let state = {
+          comando_id: null,
           encendido: false,
           marca: 'lennox',
           temperatura: 22,
           swing: 'swing_off',
           fan: 'fan_auto',
-          comando_id: null,
         };
 
         let lastSentCommandId = 0;
@@ -502,7 +585,7 @@
         let eventSource = null;
         let fallbackPollTimer = null;
 
-        // DOM Elements
+        // --- Referencias al DOM ---
         const els = {
           ambientPrimary: document.getElementById('ambient-primary'),
           syncDot: document.getElementById('sync-dot'),
@@ -536,27 +619,29 @@
           readoutFan: document.getElementById('readout-fan'),
           readoutSwing: document.getElementById('readout-swing'),
           readoutComando: document.getElementById('readout-comando'),
-          btnCopyHtml: document.getElementById('btn-copy-html'),
-          btnDownloadHtml: document.getElementById('btn-download-html'),
         };
 
+        /**
+         * Garantiza que la temperatura sea un entero dentro del rango [16, 30].
+         */
         function clampTemp(value) {
           const parsed = Number(value);
           if (!Number.isFinite(parsed)) return 22;
           return Math.min(TEMP_MAX, Math.max(TEMP_MIN, Math.round(parsed)));
         }
 
+        /**
+         * Valida y normaliza los datos recibidos desde Firebase.
+         */
         function sanitizeRemoteData(data) {
           if (!data || typeof data !== 'object') return null;
           return {
+            comando_id: typeof data.comando_id === 'number' ? data.comando_id : state.comando_id,
             encendido: Boolean(data.encendido),
             marca: VALID_BRANDS.includes(data.marca) ? data.marca : state.marca,
-            temperatura:
-              data.temperatura !== undefined ? clampTemp(data.temperatura) : state.temperatura,
+            temperatura: data.temperatura !== undefined ? clampTemp(data.temperatura) : state.temperatura,
             swing: VALID_SWINGS.includes(data.swing) ? data.swing : state.swing,
             fan: VALID_FANS.includes(data.fan) ? data.fan : state.fan,
-            comando_id:
-              typeof data.comando_id === 'number' ? data.comando_id : state.comando_id,
           };
         }
 
@@ -583,10 +668,11 @@
           els.errorBanner.classList.add('hidden');
         }
 
+        /**
+         * Muestra temporalmente el indicador "Señal enviada" o aviso de error.
+         */
         function showSignalToast(text, isError) {
-          if (toastTimeout) {
-            clearTimeout(toastTimeout);
-          }
+          if (toastTimeout) clearTimeout(toastTimeout);
 
           els.signalFeedbackText.textContent = text;
           els.signalFeedback.classList.remove(
@@ -601,17 +687,9 @@
           );
 
           if (isError) {
-            els.signalFeedback.classList.add(
-              'border-rose-400/30',
-              'bg-rose-400/10',
-              'text-rose-300'
-            );
+            els.signalFeedback.classList.add('border-rose-400/30', 'bg-rose-400/10', 'text-rose-300');
           } else {
-            els.signalFeedback.classList.add(
-              'border-emerald-400/30',
-              'bg-emerald-400/10',
-              'text-emerald-300'
-            );
+            els.signalFeedback.classList.add('border-emerald-400/30', 'bg-emerald-400/10', 'text-emerald-300');
           }
 
           els.signalFeedback.classList.add('opacity-100', 'translate-y-0');
@@ -622,11 +700,14 @@
           }, 2200);
         }
 
+        /**
+         * Sincroniza todos los elementos visuales de la interfaz con el objeto `state`.
+         */
         function render() {
           const isOn = state.encendido;
           const brandName = state.marca === 'lennox' ? 'Lennox' : 'Prime';
 
-          // Ambient glow adapts subtly to power state
+          // Resplandor ambiental
           if (isOn) {
             els.ambientPrimary.classList.remove('opacity-10', 'bg-slate-500/20');
             els.ambientPrimary.classList.add('opacity-30', 'bg-sky-500/25');
@@ -635,31 +716,23 @@
             els.ambientPrimary.classList.add('opacity-10', 'bg-slate-500/20');
           }
 
-          // Brand buttons
+          // Selector de marca
           els.brandButtons.forEach((btn) => {
             const active = btn.dataset.brand === state.marca;
             btn.setAttribute('aria-pressed', String(active));
-            if (active) {
-              btn.className =
-                'brand-btn min-h-[44px] px-5 py-2 rounded-xl text-sm font-medium whitespace-nowrap shrink-0 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 bg-sky-400/20 text-sky-100 border border-sky-400/40 shadow-sm';
-            } else {
-              btn.className =
-                'brand-btn min-h-[44px] px-5 py-2 rounded-xl text-sm font-medium whitespace-nowrap shrink-0 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 text-slate-400 hover:text-slate-100 border border-transparent';
-            }
+            btn.className = active
+              ? 'brand-btn min-h-[44px] px-5 py-2 rounded-xl text-sm font-medium whitespace-nowrap shrink-0 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 bg-sky-400/20 text-sky-100 border border-sky-400/40 shadow-sm'
+              : 'brand-btn min-h-[44px] px-5 py-2 rounded-xl text-sm font-medium whitespace-nowrap shrink-0 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 text-slate-400 hover:text-slate-100 border border-transparent';
           });
 
-          // Power button
+          // Botón principal Power
           els.btnPower.setAttribute('aria-pressed', String(isOn));
           els.powerLabel.textContent = isOn ? 'Encendido' : 'Apagado';
-          if (isOn) {
-            els.btnPower.className =
-              'min-h-[48px] px-5 py-2.5 rounded-2xl border text-sm font-semibold flex items-center gap-2.5 whitespace-nowrap shrink-0 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 bg-sky-400/20 border-sky-400/50 text-sky-100 shadow-[0_0_24px_-6px_rgba(56,189,248,0.45)]';
-          } else {
-            els.btnPower.className =
-              'min-h-[48px] px-5 py-2.5 rounded-2xl border text-sm font-semibold flex items-center gap-2.5 whitespace-nowrap shrink-0 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 bg-white/[0.04] border-white/[0.1] text-slate-300 hover:bg-white/[0.08]';
-          }
+          els.btnPower.className = isOn
+            ? 'min-h-[48px] px-5 py-2.5 rounded-2xl border text-sm font-semibold flex items-center gap-2.5 whitespace-nowrap shrink-0 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 bg-sky-400/20 border-sky-400/50 text-sky-100 shadow-[0_0_24px_-6px_rgba(56,189,248,0.45)]'
+            : 'min-h-[48px] px-5 py-2.5 rounded-2xl border text-sm font-semibold flex items-center gap-2.5 whitespace-nowrap shrink-0 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 bg-white/[0.04] border-white/[0.1] text-slate-300 hover:bg-white/[0.08]';
 
-          // Temperature display & gauge arc
+          // Display central de temperatura y arco
           els.tempDisplay.textContent = String(state.temperatura);
           els.tempDisplay.classList.toggle('opacity-55', !isOn);
           els.unitSubtitle.textContent = isOn
@@ -669,10 +742,7 @@
           const ratio = (state.temperatura - TEMP_MIN) / (TEMP_MAX - TEMP_MIN);
           const arcLength = Math.round(ratio * 405);
           els.tempArc.setAttribute('stroke-dasharray', `${arcLength} 540`);
-          els.tempArc.setAttribute(
-            'stroke',
-            isOn ? 'rgba(56,189,248,0.9)' : 'rgba(148,163,184,0.35)'
-          );
+          els.tempArc.setAttribute('stroke', isOn ? 'rgba(56,189,248,0.9)' : 'rgba(148,163,184,0.35)');
           els.tempBar.style.width = `${Math.max(4, Math.round(ratio * 100))}%`;
           els.tempBar.className = isOn
             ? 'h-full rounded-full bg-sky-400/85 transition-all duration-200'
@@ -681,8 +751,8 @@
           els.btnTempDown.disabled = state.temperatura <= TEMP_MIN;
           els.btnTempUp.disabled = state.temperatura >= TEMP_MAX;
 
-          // Fan buttons
-          els.fanSummary.textContent = FAN_LABELS[state.fan] || 'Automático';
+          // Botones de ventilador
+          els.fanSummary.textContent = FAN_LABELS[state.fan] || 'Auto';
           els.fanButtons.forEach((btn) => {
             const active = btn.dataset.fan === state.fan;
             btn.setAttribute('aria-pressed', String(active));
@@ -690,7 +760,7 @@
             btn.classList.toggle('text-slate-300', !active);
           });
 
-          // Swing toggle
+          // Interruptor Swing
           const swingOn = state.swing === 'swing_on';
           els.btnSwing.setAttribute('aria-pressed', String(swingOn));
           els.btnSwing.classList.toggle('glass-control-active', swingOn);
@@ -699,11 +769,7 @@
             ? 'Oscilación de rejillas activa'
             : 'Rejillas fijas · Toca para activar';
 
-          if (swingOn && isOn) {
-            els.swingIcon.classList.add('animate-louver');
-          } else {
-            els.swingIcon.classList.remove('animate-louver');
-          }
+          els.swingIcon.classList.toggle('animate-louver', swingOn && isOn);
 
           if (swingOn) {
             els.swingTrack.classList.remove('bg-white/10', 'border-white/10');
@@ -717,16 +783,17 @@
             els.swingThumb.classList.add('translate-x-0', 'bg-slate-300');
           }
 
-          // Readout summary
+          // Resumen inferior del dispositivo
           els.readoutMarca.textContent = state.marca;
           els.readoutEncendido.textContent = isOn ? 'Encendido' : 'Apagado';
           els.readoutFan.textContent = state.fan;
           els.readoutSwing.textContent = state.swing;
-          els.readoutComando.textContent = state.comando_id
-            ? String(state.comando_id)
-            : 'Inicializado';
+          els.readoutComando.textContent = state.comando_id ? String(state.comando_id) : 'Inicializado';
         }
 
+        /**
+         * Consulta el estado guardado en Firebase mediante GET.
+         */
         async function fetchCurrentState(isManualRefresh) {
           setSyncStatus('syncing', 'Sincronizando...');
           if (isManualRefresh) {
@@ -739,9 +806,7 @@
               cache: 'no-store',
             });
 
-            if (!response.ok) {
-              throw new Error(`HTTP ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             const data = await response.json();
             const sanitized = sanitizeRemoteData(data);
@@ -764,6 +829,9 @@
           }
         }
 
+        /**
+         * Envía el estado completo a Firebase mediante PUT con un nuevo comando_id.
+         */
         async function sendStateUpdate() {
           const comandoId = Date.now();
           lastSentCommandId = comandoId;
@@ -791,9 +859,7 @@
               body: JSON.stringify(payload),
             });
 
-            if (!response.ok) {
-              throw new Error(`HTTP ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             hideError();
             setSyncStatus('online', 'Sincronizado');
@@ -808,15 +874,16 @@
           }
         }
 
+        /**
+         * Escucha cambios en tiempo real mediante Server-Sent Events (SSE) de Firebase REST.
+         */
         function startRealtimeStream() {
           if (typeof EventSource === 'undefined') {
             startFallbackPolling();
             return;
           }
 
-          if (eventSource) {
-            eventSource.close();
-          }
+          if (eventSource) eventSource.close();
 
           try {
             eventSource = new EventSource(FIREBASE_URL);
@@ -828,7 +895,6 @@
                 if (parsed.path === '/' && parsed.data) {
                   const remote = sanitizeRemoteData(parsed.data);
                   if (!remote) return;
-                  // Ignore echoes of our own most recent command or while sending
                   if (pendingRequests > 0 || remote.comando_id === lastSentCommandId) {
                     setSyncStatus('online', 'Sincronizado');
                     return;
@@ -850,9 +916,7 @@
                 if (parsed.path === '/' && parsed.data) {
                   const merged = sanitizeRemoteData({ ...state, ...parsed.data });
                   if (!merged) return;
-                  if (pendingRequests > 0 || merged.comando_id === lastSentCommandId) {
-                    return;
-                  }
+                  if (pendingRequests > 0 || merged.comando_id === lastSentCommandId) return;
                   state = merged;
                   render();
                   setSyncStatus('online', 'Sincronizado');
@@ -874,6 +938,9 @@
           }
         }
 
+        /**
+         * Sondeo de respaldo en caso de que EventSource no esté disponible o falle.
+         */
         function startFallbackPolling() {
           if (fallbackPollTimer) return;
           fallbackPollTimer = setInterval(() => {
@@ -883,74 +950,7 @@
           }, 5000);
         }
 
-        function buildStandaloneHtml() {
-          const clone = document.documentElement.cloneNode(true);
-          const localCssLink = clone.querySelector('link[href="/src/index.css"]');
-          if (localCssLink) {
-            const tailwindScript = document.createElement('script');
-            tailwindScript.src = 'https://cdn.tailwindcss.com';
-            const customStyle = document.createElement('style');
-            customStyle.textContent = `
-              body { font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background-color: #070b12; color: #f1f5f9; }
-              .font-mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-              .glass-panel { background: linear-gradient(145deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.02) 100%); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.09); box-shadow: 0 24px 48px -16px rgba(0,0,0,0.55), inset 0 1px 0 0 rgba(255,255,255,0.08); }
-              .glass-control { background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); transition: background-color 160ms ease, border-color 160ms ease, transform 140ms ease; }
-              .glass-control:hover:not(:disabled) { background: rgba(255,255,255,0.075); border-color: rgba(255,255,255,0.16); }
-              .glass-control:active:not(:disabled) { transform: scale(0.97); }
-              .glass-control-active { background: rgba(56,189,248,0.14); border-color: rgba(56,189,248,0.48); color: #f0f9ff; }
-              .signal-toast { transition: opacity 200ms ease, transform 200ms ease; }
-              @keyframes louver-wave { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(2px) rotate(-6deg); } }
-              .animate-louver { animation: louver-wave 2.2s ease-in-out infinite; transform-origin: center left; }
-            `;
-            localCssLink.replaceWith(tailwindScript, customStyle);
-          }
-
-          // Reset transient toast/error state in exported copy
-          const clonedToast = clone.querySelector('#signal-feedback');
-          if (clonedToast) {
-            clonedToast.classList.remove('opacity-100', 'translate-y-0');
-            clonedToast.classList.add('opacity-0', 'translate-y-1');
-          }
-          const clonedError = clone.querySelector('#error-banner');
-          if (clonedError) {
-            clonedError.classList.add('hidden');
-          }
-          const clonedSyncText = clone.querySelector('#sync-status-text');
-          if (clonedSyncText) {
-            clonedSyncText.textContent = 'Conectando...';
-          }
-
-          return '<!doctype html>\n' + clone.outerHTML;
-        }
-
-        function downloadStandaloneHtml() {
-          const htmlContent = buildStandaloneHtml();
-          const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'control-ac-smart.html';
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          URL.revokeObjectURL(url);
-        }
-
-        async function copyStandaloneHtml() {
-          const htmlContent = buildStandaloneHtml();
-          try {
-            await navigator.clipboard.writeText(htmlContent);
-            const original = els.btnCopyHtml.textContent;
-            els.btnCopyHtml.textContent = 'HTML copiado';
-            setTimeout(() => {
-              els.btnCopyHtml.textContent = original;
-            }, 2000);
-          } catch (_err) {
-            downloadStandaloneHtml();
-          }
-        }
-
-        // Event Listeners — every configuration button press generates a fresh comando_id
+        // --- Eventos de interacción ---
         els.brandButtons.forEach((btn) => {
           btn.addEventListener('click', () => {
             const selectedBrand = btn.dataset.brand;
@@ -991,23 +991,10 @@
           sendStateUpdate();
         });
 
-        els.btnRefresh.addEventListener('click', () => {
-          fetchCurrentState(true);
-        });
+        els.btnRefresh.addEventListener('click', () => fetchCurrentState(true));
+        els.btnRetry.addEventListener('click', () => fetchCurrentState(true));
 
-        els.btnRetry.addEventListener('click', () => {
-          fetchCurrentState(true);
-        });
-
-        if (els.btnCopyHtml) {
-          els.btnCopyHtml.addEventListener('click', copyStandaloneHtml);
-        }
-
-        if (els.btnDownloadHtml) {
-          els.btnDownloadHtml.addEventListener('click', downloadStandaloneHtml);
-        }
-
-        // Keyboard accessibility for temperature adjustment
+        // Atajos de teclado (+ / - o flechas arriba/abajo)
         document.addEventListener('keydown', (e) => {
           if (e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
           if (e.key === 'ArrowUp' || e.key === '+') {
@@ -1025,7 +1012,7 @@
           }
         });
 
-        // Initial Render & Boot Sequence
+        // --- Arranque inicial ---
         render();
         fetchCurrentState(false).then(() => {
           startRealtimeStream();
