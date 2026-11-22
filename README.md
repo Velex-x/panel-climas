@@ -1,52 +1,59 @@
-# ClimaControl IR
+# ClimaControl IR — Control Multi-Equipo y Horarios Semanales
 
-Control remoto web minimalista (estética oscura *glassmorphism*) para aires acondicionados **Lennox** y **Prime**, conectado en tiempo real con **Firebase Realtime Database**.
+Control remoto web minimalista (estética oscura *glassmorphism*) para gestionar múltiples aires acondicionados **Lennox** y **Prime** conectados a **Firebase Realtime Database**, con control manual simultáneo y **programación horaria semanal (lunes a viernes)** por equipo.
 
-Está diseñado en un **único archivo `index.html`** con Tailwind CSS y JavaScript puro (sin pasos de compilación), por lo que puede abrirse directamente en el navegador o publicarse en **GitHub Pages**.
+Está desarrollado en un **único archivo `index.html`** con Tailwind CSS y JavaScript puro (sin pasos de compilación), listo para abrirse en el navegador o publicarse directamente en **GitHub Pages**.
 
 ## Características
 
-- **Sincronización en tiempo real**: Al abrir la página realiza un `GET` inicial a `estado_dispositivo.json` y mantiene una conexión activa mediante `EventSource` (con respaldo automático por sondeo y botón manual **Actualizar**).
-- **Selector de marca**: Alterna entre `lennox` y `prime`.
-- **Encendido / Apagado**: Envía `"encendido": true` o `false`.
-- **Control de temperatura**: Rango de `16 °C` a `30 °C` con botones `-` / `+` y soporte de teclado (`+`, `-`, flecha arriba/abajo).
-- **Velocidad de ventilador**: Opciones visuales para `fan_auto`, `fan_1`, `fan_2` y `fan_3`.
-- **Oscilación (Swing)**: Alterna entre `swing_on` y `swing_off`.
-- **Emisión inmediata**: Cada interacción genera un nuevo `comando_id` (`Date.now()`) y envía una petición `PUT` a Firebase mostrando **«Señal enviada»**.
+- **Control manual unificado en una sola vista**: Carátulas independientes para los 5 equipos predeterminados (`Clima 1` a `Clima 5`), con gestión dinámica (agregar, editar nombre/ID o eliminar) guardada en `localStorage`.
+- **Sincronización en tiempo real**: Realiza `GET` a `/dispositivos/{id_dispositivo}.json` para cada equipo, inicializa automáticamente nodos faltantes (`encendido: false, marca: "lennox", temperatura: 22, swing: "swing_off", fan: "fan_1"`) y escucha actualizaciones en `/dispositivos.json` mediante `EventSource`.
+- **Programación horaria semanal (Lun – Vie)**:
+  - Consulta `/horarios/{id_dispositivo}.json` al seleccionar un equipo.
+  - Pestañas para **Lunes, Martes, Miércoles, Jueves y Viernes**.
+  - Alta de bloques horarios con hora de inicio/fin (`HH:MM`), marca, temperatura (`16–30 °C`), ventilador y oscilación, validando que `fin > inicio` y evitando traslapes.
+  - Eliminación individual de bloques y herramienta **Copiar horario a otros días** con guardado automático vía `PUT` en `/horarios/{id_dispositivo}/{dia}.json`.
 
 ## Estructura en Firebase Realtime Database
 
-Endpoint configurado en `index.html` (`FIREBASE_URL`):
+Base URL configurada en `index.html`:
 
 ```text
-https://almacenamiento-ir-default-rtdb.firebaseio.com/estado_dispositivo.json
+https://almacenamiento-ir-default-rtdb.firebaseio.com
 ```
 
-Objeto JSON enviado y consultado:
+### 1. Estado manual (`/dispositivos/{id_dispositivo}.json`)
 
 ```json
 {
-  "comando_id": 1731628800000,
-  "encendido": true,
+  "comando_id": 1731790000000,
+  "encendido": false,
   "marca": "lennox",
   "temperatura": 22,
   "swing": "swing_off",
-  "fan": "fan_auto"
+  "fan": "fan_1"
 }
 ```
 
-| Campo | Tipo | Valores permitidos |
-| --- | --- | --- |
-| `comando_id` | `number` | Timestamp en milisegundos (`Date.now()`) |
-| `encendido` | `boolean` | `true` \| `false` |
-| `marca` | `string` | `"lennox"` \| `"prime"` |
-| `temperatura` | `number` | Entero entre `16` y `30` |
-| `swing` | `string` | `"swing_on"` \| `"swing_off"` |
-| `fan` | `string` | `"fan_auto"` \| `"fan_1"` \| `"fan_2"` \| `"fan_3"` |
+### 2. Horarios semanales (`/horarios/{id_dispositivo}/{dia}.json`)
 
-## Uso y publicación en GitHub Pages
+Días válidos: `"lunes"`, `"martes"`, `"miercoles"`, `"jueves"`, `"viernes"`.
+
+```json
+[
+  {
+    "inicio": "07:00",
+    "fin": "10:00",
+    "marca": "lennox",
+    "temperatura": 22,
+    "swing": "swing_off",
+    "fan": "fan_1"
+  }
+]
+```
+
+## Publicación en GitHub Pages
 
 1. Sube `index.html` a tu repositorio de GitHub.
-2. (Opcional) Si usas otra base de datos, actualiza la constante `FIREBASE_URL` en el `<script>` de `index.html`.
-3. En GitHub, ve a **Settings → Pages**, selecciona la rama principal (`main`) y la carpeta raíz (`/`).
-4. Tu control remoto quedará disponible en `https://<tu-usuario>.github.io/<tu-repositorio>/`.
+2. En **Settings → Pages**, selecciona la rama principal (`main`) y la carpeta raíz (`/`).
+3. Abre la URL publicada desde cualquier navegador móvil o de escritorio.
